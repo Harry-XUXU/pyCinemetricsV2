@@ -1,40 +1,40 @@
 # pyCinemetrics_V2.0 
 [![CI Build](https://github.com/CBD-Lab/pyCinemetricsV2/actions/workflows/ci.yml/badge.svg)](https://github.com/CBD-Lab/pyCinemetricsV2/actions/workflows/ci.yml)
 
-> **🍎 macOS 移植版** — 本 Fork 为原始项目增加了完整的 macOS 适配与 PyInstaller 打包方案。
-> 上游仓库：[CBD-Lab/pyCinemetricsV2](https://github.com/CBD-Lab/pyCinemetricsV2)
+> **🍎 macOS Port** — This fork adds full macOS compatibility and PyInstaller packaging to the original project.
+> Upstream: [CBD-Lab/pyCinemetricsV2](https://github.com/CBD-Lab/pyCinemetricsV2)
 
-## macOS 移植说明
+## macOS Port
 
-本 Fork 在原始项目基础上完成了以下工作：
+This fork adds the following to the original project:
 
-### 兼容性修复
-- **multiprocessing 修复** — macOS 上 PyInstaller 打包后子进程重启 App 的问题
-- **工作目录自动切换** — App Bundle 环境下自动定位资源文件
-- **matplotlib 线程安全** — 图表渲染从子线程迁至主线程，解决 macOS 上偶发崩溃
-- **延迟导入** — 避免 PyInstaller 打包时 SSL 模块冲突
+### Compatibility Fixes
+- **multiprocessing fix** — Resolves child process respawning issue when running as a PyInstaller-bundled `.app` on macOS
+- **Auto working directory** — Automatically locates resource files inside the App Bundle
+- **matplotlib thread safety** — Moves chart rendering from worker threads to main thread, fixing intermittent crashes on macOS
+- **Deferred imports** — Avoids SSL module conflicts during PyInstaller bundling
 
-### 路径管理
-- 输出路径从 `./img/` 改为 `~/Documents/pyCinemetrics/`
-- 新增**模型路径设置 GUI 对话框**（Settings → Model Path）
+### Path Management
+- Output path changed from `./img/` to `~/Documents/pyCinemetrics/`
+- Added **Model Path Settings GUI dialog** (Settings → Model Path)
 
-### 打包方案
-- PyInstaller `.spec` 配置 + 自动化打包脚本
-- DMG 安装包生成
-- macOS 代码签名与环境变量注入（`Info.plist`）
-- 详细打包文档：[MACOS_BUILD_GUIDE.md](MACOS_BUILD_GUIDE.md)
+### Packaging
+- PyInstaller `.spec` config + automated build scripts
+- DMG installer generation
+- macOS code signing + environment variable injection (`Info.plist`)
+- Detailed build guide: [MACOS_BUILD_GUIDE.md](MACOS_BUILD_GUIDE.md)
 
-### 快速开始（macOS）
+### Quick Start (macOS)
 ```bash
-# 开发环境
+# Development
 pip install -r requirements.txt
 python main.py
 
-# 打包为 .app
+# Package as .app
 ./build_macos.sh
 open dist/pyCinemetricsV2.app
 ```
-> 详细使用说明见 [USER_GUIDE.md](USER_GUIDE.md)
+> Full user guide: [USER_GUIDE.md](USER_GUIDE.md)
 
 ---
 
