@@ -49,15 +49,24 @@ class Timeline(QDockWidget):
 
         try:
             # 获取指定目录中的所有图片文件（该目录下的所有帧）
-            self.imglist = os.listdir('img/' + name + "/frame/")
+            # 使用主窗口中的 frame_save 路径
+            self.imglist = os.listdir(self.parent.frame_save)
+            print(f"[Timeline] Loaded {len(self.imglist)} frames from {self.parent.frame_save}")
         except Exception as e:  # 捕获可能的异常，如目录不存在
-            print(f"Error reading directory 'img/{name}': {e}")
+            print(f"Error reading directory '{self.parent.frame_save}': {e}")
             return
 
         pattern = r"frame(\d+)\.png"
         if self.imglist:  # 如果目录中存在图片
+            # 按帧号数字排序，确保正确显示顺序
+            def extract_frame_number(filename):
+                match = re.search(pattern, filename)
+                return int(match.group(1)) if match else 0
+
+            self.imglist.sort(key=extract_frame_number)
+
             for img in self.imglist:  # 遍历每个图片文件
-                img_path = 'img/' + name + "/frame/" + img  # 构建图片的完整路径
+                img_path = os.path.join(self.parent.frame_save, img)  # 构建图片的完整路径
                 img_frame_num = re.search(pattern, img).group(1)
                 pixmap = QPixmap(img_path)  # 加载图片为 QPixmap 对象
                 self.paths.append(img_path)  # 保存图片路径到 paths 列表
@@ -72,8 +81,11 @@ class Timeline(QDockWidget):
         self.showShot(Path(filename).resolve().stem)
 
     def on_shot_finished(self):
-        # 当镜头分析完成时，重新调用 on_filename_changed 方法
-        self.on_filename_changed(self.parent.filename)
+        """当镜头分析完成时，只更新计数，不加载帧图"""
+        # 不立即加载所有帧图，避免 UI 阻塞
+        # 用户需要时再加载（通过 ShowCsv 按钮或其他方式）
+        print(f"[Timeline] Shot analysis completed. Frames saved to: {self.parent.frame_save}")
+        print(f"[Timeline] Use 'ShowCsv' button to view results without loading all frame images")
 
     def video_play(self):
         # 获取当前选中的项
@@ -91,7 +103,7 @@ class Timeline(QDockWidget):
                 imgpath = path
                 break
 
-        analysis = ColorAnalysis(self.currentImg, imgpath, self.parent.colorsC)  # 创建颜色分析对象
+        analysis = ColorAnalysis(self.currentImg, imgpath, self.parent.colorsC, image_save_path=self.parent.image_save)  # 创建颜色分析对象
         analysis.analysis1img(imgpath, self.parent.colorsC)  # 对该帧进行颜色分析
         colors_pie_ImgPath = '/'.join(imgpath.split("/")[:2]) + '/colortmp.png'  # 分析结果的保存路径
 

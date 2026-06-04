@@ -194,6 +194,9 @@ class FaceDetection(QThread):
             if img is None:
                 continue
             faces = app.get(img)
+            if faces is None or len(faces) == 0:
+                print(f"[Face] No face detected in {img_path}, skipping")
+                continue  # 跳过没有检测到人脸的图片
             for face in faces:
                 features.append(face.normed_embedding)  # 提取特征
                 face_images.append(face.bbox)         # 获取人脸边框

@@ -71,9 +71,14 @@ class VLCPlayer(QtWidgets.QWidget):
 
         # In this widget, the video will be drawn
         if platform.system() == 'Darwin':  # for MacOS
-            self.videoframe = QtWidgets.QMacCocoaViewContainer(0)
+            self.videoframe = QtWidgets.QFrame()
+            self.videoframe.setMinimumSize(640, 480)
+            self.videoframe.setStyleSheet("background-color: black;")
+            self._nsview_handle = None  # 占位，后续如果需要可以扩展
         else:
             self.videoframe = QtWidgets.QFrame()
+            self.videoframe.setMinimumSize(640, 480)
+            self.videoframe.setStyleSheet("background-color: black;")
 
         self.icons = {
             'OPEN': self.style().standardIcon(QtWidgets.QStyle.SP_DirOpenIcon),

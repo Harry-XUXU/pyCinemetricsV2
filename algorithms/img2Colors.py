@@ -17,11 +17,12 @@ class ColorAnalysis(QThread):
     # 线程结束信号
     finished = Signal(bool)
 
-    def __init__(self, filename, imgpath, colorsC):
+    def __init__(self, filename, imgpath, colorsC, image_save_path=None):
         super(ColorAnalysis, self).__init__()
         self.filename = filename
         self.imgpath = imgpath
         self.colorsC = colorsC
+        self.image_save_path = image_save_path  # 绝对路径
 
     def load_image(self):
         img = Image.open(self.filename)
@@ -64,7 +65,14 @@ class ColorAnalysis(QThread):
         return colors_16
 
     def run(self):
-        imglist = os.listdir("img/" + self.imgpath + '/frame/')
+        # 使用绝对路径
+        if self.image_save_path:
+            frame_dir = os.path.join(self.image_save_path, "frame")
+        else:
+            # 向后兼容：使用旧的相对路径模式
+            frame_dir = "img/" + self.imgpath + '/frame/'
+        
+        imglist = os.listdir(frame_dir)
         color_16_list = []
         allcolors_rgb = []
         allcolors_rgb_list = []
@@ -78,7 +86,7 @@ class ColorAnalysis(QThread):
             if self.flag:
                 self.finished.emit(True)
                 break
-            self.filename=("img/" + self.imgpath + "/frame/" + i)
+            self.filename = os.path.join(frame_dir, i)
             imgdata = self.load_image()
             if len(imgdata) < self.colorsC:
                 color_rgb = [list(imgdata[0])] * self.colorsC
@@ -104,9 +112,9 @@ class ColorAnalysis(QThread):
             pass
         else:
             # 创建一个py文件 骗一下matplot让它以为在主线程里
-            rs = Resultsave("./img/"+self.imgpath+"/")
+            rs = Resultsave(self.image_save_path if self.image_save_path else "./img/"+self.imgpath+"/")
             rs.color_csv(color_16_list, self.colorsC)
-            rs.plot_scatter_3d(allcolors_rgb_list)
+            # rs.plot_scatter_3d(allcolors_rgb_list) # Moved to UI thread
             self.finished.emit(True)
 
     def stop(self):
@@ -135,5 +143,7 @@ class ColorAnalysis(QThread):
                 labels=colors_16,
                 autopct='%1.2f%%',
                 )
-        plt.savefig('/'.join(self.filename.split("/")[:2])+ '/colortmp.png')
+        # 使用绝对路径保存
+        save_path = self.image_save_path if self.image_save_path else '/'.join(self.filename.split("/")[:2])
+        plt.savefig(os.path.join(save_path, 'colortmp.png'))
         # plt.show()

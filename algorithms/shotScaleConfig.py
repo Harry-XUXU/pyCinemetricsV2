@@ -1,5 +1,19 @@
-prototxt_25 = "models/pose/body_25/pose_deploy.prototxt"
-caffemodel_25 = "models/pose/body_25/pose_iter_584000.caffemodel"
+"""
+OpenPose 模型配置文件
+使用统一的模型路径管理
+"""
+import os
+from algorithms.config import get_model_path
+
+# 获取模型目录
+_pose_model_dir = get_model_path("openpose")
+if _pose_model_dir is None:
+    # 回退到相对路径（开发环境）
+    _pose_model_dir = "models/pose"
+
+# 25 关键点模型（Body 25）
+prototxt_25 = os.path.join(_pose_model_dir, "body_25", "pose_deploy.prototxt")
+caffemodel_25 = os.path.join(_pose_model_dir, "body_25", "pose_iter_584000.caffemodel")
 
 point_name_25 = ['Nose', 'Neck', 'RShoulder',
                  'RElbow', 'RWrist', 'LShoulder',
@@ -16,7 +30,7 @@ point_pairs_25 = [[1, 8], [1, 2], [1, 5], [2, 3], [3, 4], [5, 6],
                   [2, 17], [5, 18], [14, 19], [19, 20], [14, 21], [11, 22],
                   [22, 23], [11, 24]]
 
-# 定义从原始25个关节点到COCO标准关节点的映射关系
+# 定义从原始 25 个关节点到 COCO 标准关节点的映射关系
 map_idx_25 = [[26, 27], [40, 41], [48, 49], [42, 43], [44, 45], [50, 51],
               [52, 53], [32, 33], [28, 29], [30, 31], [34, 35], [36, 37],
               [38, 39], [56, 57], [58, 59], [62, 63], [60, 61], [64, 65],
@@ -33,8 +47,9 @@ colors_25 = [[255, 0, 0], [255, 85, 0], [255, 170, 0],
              [255, 85, 85], [255, 85, 170], [255, 85, 255],
              [170, 170, 170]]
 
-prototxt_18 = "./models/pose/coco/pose_deploy_linevec.prototxt"
-caffemodel_18 = "./models/pose/coco/pose_iter_440000.caffemodel"
+# 18 关键点模型（COCO）
+prototxt_18 = os.path.join(_pose_model_dir, "coco", "pose_deploy_linevec.prototxt")
+caffemodel_18 = os.path.join(_pose_model_dir, "coco", "pose_iter_440000.caffemodel")
 
 point_names_18 = ['Nose', 'Neck',
                   'R-Sho', 'R-Elb', 'R-Wr',

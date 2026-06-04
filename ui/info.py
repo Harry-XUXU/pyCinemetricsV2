@@ -38,7 +38,7 @@ class Info(QDockWidget):
         video = cv2.VideoCapture(filename)
         if not video.isOpened():
             return
-        frame_path = self.frame_save = "./img/"+str(os.path.basename(filename)[0:-4])+"/frame"#图片存储路径  # 替换为您要检查的文件夹路径
+        frame_path = self.frame_save = self.parent.frame_save
         shot_count = 0
 
         # 使用os.listdir遍历文件夹中的所有项目（包括文件和子文件夹）

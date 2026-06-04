@@ -11,6 +11,7 @@ import csv
 from wordcloud import WordCloud
 from collections import Counter
 from algorithms.wordCloud2Frame import WordCloud2Frame
+from algorithms.model_path import get_model_path
 from ui.progressBar import *
 from moviepy import VideoFileClip
 
@@ -26,6 +27,20 @@ class SubtitleProcessorWhisper(QThread):
         self.v_path = v_path
         self.save_path = save_path
         self.parent = parent
+        
+        # 设置线程属性，确保可以被正确清理
+        self.setObjectName("SubtitleProcessorWhisper")
+
+    def stop(self):
+        """正确停止线程"""
+        print("[SubtitleProcessorWhisper] Stopping thread...")
+        self.is_stop = 1
+        self.quit()  # 退出事件循环
+        self.wait(3000)  # 等待最多 3 秒
+        if self.isRunning():
+            print("[SubtitleProcessorWhisper] Thread terminated")
+            self.terminate()
+        print("[SubtitleProcessorWhisper] Thread stopped")
 
     def run(self):
         # 从视频中提取音频文件并分段
@@ -49,11 +64,31 @@ class SubtitleProcessorWhisper(QThread):
             model_load_start_time = time.time()
             # Use faster-whisper for transcription
             self.signal.emit(0, 0, 0, "Model loading...")
-            model = WhisperModel(r"models/faster-whisper-small", device="cpu",
-                                 compute_type="int8")  # Load the small model of faster-whisper
-            model_load_end_time = time.time()
-            model_load_total_time = model_load_end_time - model_load_start_time
-            print(f"Model loaded in {model_load_total_time} seconds")
+            try:
+                # 使用统一的模型路径管理
+                whisper_model_path = get_model_path("whisper")
+                if not whisper_model_path:
+                    raise FileNotFoundError("Whisper model not found. Please configure the model path in Settings.")
+                
+                print(f"[Subtitle] Using Whisper model from: {whisper_model_path}")
+                
+                # 使用本地模型，不联网验证
+                model = WhisperModel(whisper_model_path, device="cpu",
+                                     compute_type="int8",
+                                     local_files_only=True)  # 关键：只使用本地文件
+                model_load_end_time = time.time()
+                model_load_total_time = model_load_end_time - model_load_start_time
+                print(f"Model loaded in {model_load_total_time} seconds")
+            except FileNotFoundError as e:
+                print(f"Error loading model: {e}")
+                self.signal.emit(101, 101, 101, f"Model Not Found: {str(e)}")
+                self.finished.emit(True)
+                return
+            except Exception as e:
+                print(f"Error loading model: {e}")
+                self.signal.emit(101, 101, 101, f"Model Error: {str(e)}")
+                self.finished.emit(True)
+                return
             total_transcribe_time = 0
 
             for i in range(num_segments):

@@ -1,8 +1,10 @@
 import os
+import sys
 import numpy as np
 import tensorflow as tf
 import cv2
 from algorithms.resultSave import Resultsave
+from algorithms.model_path import get_model_path
 from ui.progressBar import *
 
 class TransNetV2(QThread):
@@ -28,12 +30,20 @@ class TransNetV2(QThread):
         self.pre = 25
         self.window = 50
         self.lookup_window = self.pre * 2 + self.window
+
+        # 使用统一的模型路径管理
         if model_dir is None:
-            model_dir = "models/transnetv2-weights/"
-            if not os.path.isdir(model_dir):
-                raise FileNotFoundError(f"[TransNetV2] ERROR: {model_dir} is not a directory.")
+            model_dir = get_model_path("transnetv2")
+            if not model_dir:
+                raise FileNotFoundError(
+                    "[TransNetV2] Model not found. Please configure the model path in Settings "
+                    "or place the model in ~/Documents/pyCinemetrics/models/transnetv2-weights/"
+                )
             else:
-                print(f"[TransNetV2] Using weights from {model_dir}.")
+                print(f"[TransNetV2] ✅ Using weights from: {model_dir}")
+                print(f"[TransNetV2] Directory exists: {os.path.exists(model_dir)}")
+                if os.path.exists(model_dir):
+                    print(f"[TransNetV2] Contents: {os.listdir(model_dir)[:5]}")
 
         self._input_size = (27, 48, 3)
         self.model_dir = model_dir
@@ -182,55 +192,110 @@ class TransNetV2(QThread):
             # return single_frame_pred[:len(frames)], all_frames_pred[:len(frames)]  # remove extra padded frames
 
     def run(self):
+        print("[TransNetV2] run() started")
         self.signal.emit(0, 0, 0, "Model loading...")
 
         try:
+            print(f"[TransNetV2] Loading model from {self.model_dir}")
             self.model = tf.saved_model.load(self.model_dir)
-            print(self.model_dir)
-        except OSError as exc:
-            raise IOError(f"[TransNetV2] It seems that files in {self.model_dir} are corrupted or missing. "
-                          f"Re-download them manually and retry. For more info, see: "
-                          f"https://github.com/soCzech/TransNetV2/issues/1#issuecomment-647357796") from exc
+            print(f"[TransNetV2] Model loaded successfully: {self.model_dir}")
+        except Exception as exc:
+            print(f"[TransNetV2] ERROR loading model: {exc}")
+            self.signal.emit(101, 101, 101, f"Model Error: {str(exc)}")
+            self.finished.emit(True)
+            return
+
         # 删除旧的分镜
-        if not (os.path.exists(self.image_save)):
-            os.mkdir(self.image_save)
-        if not (os.path.exists(self.frame_save)):
-            os.mkdir(self.frame_save)
-        else:
-            imgfiles = os.listdir(os.path.join(os.getcwd(), self.frame_save))
-            for f in imgfiles:
-                os.remove(os.path.join(os.getcwd(), self.frame_save, f))
+        try:
+            if not os.path.exists(self.image_save):
+                os.makedirs(self.image_save, exist_ok=True)
+            if not os.path.exists(self.frame_save):
+                os.makedirs(self.frame_save, exist_ok=True)
+            else:
+                imgfiles = os.listdir(self.frame_save)
+                for f in imgfiles:
+                    file_path = os.path.join(self.frame_save, f)
+                    if os.path.isfile(file_path):
+                        os.remove(file_path)
+            print(f"[TransNetV2] Directories ready: {self.image_save}, {self.frame_save}")
+        except Exception as exc:
+            print(f"[TransNetV2] ERROR preparing directories: {exc}")
+            self.signal.emit(101, 101, 101, f"Dir Error: {str(exc)}")
+            self.finished.emit(True)
+            return
 
         try:
             import cv2
-        except ModuleNotFoundError:
-            raise ModuleNotFoundError("For `predict_video` function `cv2` needs to be installed in order to extract "
-                                      "individual frames from video file. Install `cv2` command line tool and then "
-                                      "install python wrapper by `pip install opencv-python`.")
-
-        print("[TransNetV2] Extracting frames from {}".format(self.video_fn))
-        self.signal.emit(0, 0, 0, "Video processing...")
-        cap = cv2.VideoCapture(self.video_fn)
-        if not cap.isOpened():
-            print("Error: Could not open video.")
-            exit()
-        frames = []
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            frame = cv2.resize(frame, (48, 27))
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frames.append(frame)
-        cap.release()
-        self.video = np.array(frames)
-        self.predict_video(self.video)
-        self.signal.emit(101, 101, 101,"shotcut")  # 完事了再发一次
-        if self.is_stop:
+        except ModuleNotFoundError as exc:
+            print(f"[TransNetV2] ERROR: cv2 not found: {exc}")
+            self.signal.emit(101, 101, 101, "cv2 Error")
             self.finished.emit(True)
-            pass
+            return
+
+        print(f"[TransNetV2] Extracting frames from {self.video_fn}")
+        self.signal.emit(0, 0, 0, "Extracting frames...")
+        
+        try:
+            cap = cv2.VideoCapture(self.video_fn)
+            if not cap.isOpened():
+                print(f"[TransNetV2] ERROR: Could not open video: {self.video_fn}")
+                self.signal.emit(101, 101, 101, "Video Open Error")
+                self.finished.emit(True)
+                return
+            
+            # 获取视频总帧数
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            print(f"[TransNetV2] Total frames to extract: {total_frames}")
+            
+            frames = []
+            frame_count = 0
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                frame = cv2.resize(frame, (48, 27))
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                frames.append(frame)
+                frame_count += 1
+                
+                # 发送真实进度（当前帧/总帧数）
+                progress = int((frame_count / total_frames) * 100)
+                self.signal.emit(progress, frame_count, total_frames, f"Extracting frames ({frame_count}/{total_frames})...")
+                
+            cap.release()
+            print(f"[TransNetV2] Extracted {len(frames)} frames")
+        except Exception as exc:
+            print(f"[TransNetV2] ERROR extracting frames: {exc}")
+            self.signal.emit(101, 101, 101, f"Extract Error: {str(exc)}")
+            self.finished.emit(True)
+            return
+        
+        self.video = np.array(frames)
+        
+        try:
+            print("[TransNetV2] Running predict_video...")
+            self.predict_video(self.video)
+            print("[TransNetV2] predict_video completed")
+        except Exception as exc:
+            print(f"[TransNetV2] ERROR in predict_video: {exc}")
+            self.signal.emit(101, 101, 101, f"Predict Error: {str(exc)}")
+            self.finished.emit(True)
+            return
+        
+        self.signal.emit(101, 101, 101, "shotcut")
+        print("[TransNetV2] Emitting finished signal")
+        
+        if self.is_stop:
+            print("[TransNetV2] Stopped by user")
+            self.finished.emit(True)
         else:
-            self.run_moveon()
+            print("[TransNetV2] Calling run_moveon...")
+            try:
+                self.run_moveon()
+                print("[TransNetV2] run_moveon completed")
+            except Exception as exc:
+                print(f"[TransNetV2] ERROR in run_moveon: {exc}")
+                self.finished.emit(True)
 
     @staticmethod
     def pred_window_to_shotList(predictions: np.ndarray, prev_cnt, threshold: float = 0.3):
@@ -359,7 +424,7 @@ class TransNetV2(QThread):
         # 发送shot_finished信号，进行处理
         self.parent.parent.shot_finished.emit()
         rs = Resultsave(self.image_save + "/")
-        rs.plot_transnet_shotcut(shot_len)
+        # rs.plot_transnet_shotcut(shot_len) # Moved to UI thread
         rs.diff_csv(0, shot_len)
         self.finished.emit(True)
 

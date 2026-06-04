@@ -1,0 +1,29 @@
+# macOS packaging
+venv/
+dist/
+build/
+__pycache__/
+*.pyc
+*.bak
+.DS_Store
+.vscode/
+
+# Large files / binaries
+*.dmg
+*.dmgcanvas/
+*.mp4
+models/buffalo_l/
+models/faster-whisper-small/
+models/git-base/
+models/nltk_data/
+models/opus-mt-en-zh/
+models/paddleocr/
+models/pose/
+models/transnetv2-weights/
+pyCinemetrics20241218-StepByStep/
+
+# Temp files
+.!*
+debugpyc2.docx
+test_*.py
+test_*.sh

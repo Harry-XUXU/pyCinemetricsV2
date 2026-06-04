@@ -192,9 +192,14 @@ class Similarity(QThread):
 
             cap.release()  # 释放视频捕获对象
 
-        # 保存到文件
-        image_save_path = "./img/" + str(os.path.basename(self.filename )[0:-4]) + "/pace.png"
+        # 保存到文件 - 使用与 main.py 相同的路径逻辑
+        video_name = str(os.path.basename(self.filename)[0:-4])
+        base_dir = os.path.expanduser('~/Documents/pyCinemetrics')
+        image_save_path = os.path.join(base_dir, video_name, "pace.png")
+        # 确保目录存在
+        os.makedirs(os.path.dirname(image_save_path), exist_ok=True)
         plt.savefig(image_save_path)
+        print(f"[Pace] Saved to {image_save_path}")
         plt.close()
 
         # 反转图像
@@ -275,9 +280,14 @@ class Similarity(QThread):
 
             cap.release()  # 释放视频捕获对象
 
-        # 保存到文件
-        image_save_path = "./img/" + str(os.path.basename(self.filename )[0:-4]) + "/pace_reversed.png"
+        # 保存到文件 - 使用与 main.py 相同的路径逻辑
+        video_name = str(os.path.basename(self.filename)[0:-4])
+        base_dir = os.path.expanduser('~/Documents/pyCinemetrics')
+        image_save_path = os.path.join(base_dir, video_name, "pace_reversed.png")
+        # 确保目录存在
+        os.makedirs(os.path.dirname(image_save_path), exist_ok=True)
         plt.savefig(image_save_path)
+        print(f"[Pace] Saved to {image_save_path}")
         plt.close()
 
     def plot_and_save_single(self, frame_similarities):
@@ -348,9 +358,14 @@ class Similarity(QThread):
 
             cap.release()  # 释放视频捕获对象
 
-        # 保存到文件
-        image_save_path = "./img/" + str(os.path.basename(self.filename )[0:-4]) + "/pace.png"
+        # 保存到文件 - 使用与 main.py 相同的路径逻辑
+        video_name = str(os.path.basename(self.filename)[0:-4])
+        base_dir = os.path.expanduser('~/Documents/pyCinemetrics')
+        image_save_path = os.path.join(base_dir, video_name, "pace.png")
+        # 确保目录存在
+        os.makedirs(os.path.dirname(image_save_path), exist_ok=True)
         plt.savefig(image_save_path)
+        print(f"[Pace] Saved to {image_save_path}")
         plt.close()
 
         # 反转图像
@@ -410,9 +425,14 @@ class Similarity(QThread):
 
             cap.release()  # 释放视频捕获对象
 
-        # 保存到文件
-        image_save_path = "./img/" + str(os.path.basename(self.filename )[0:-4]) + "/pace_reversed.png"
+        # 保存到文件 - 使用与 main.py 相同的路径逻辑
+        video_name = str(os.path.basename(self.filename)[0:-4])
+        base_dir = os.path.expanduser('~/Documents/pyCinemetrics')
+        image_save_path = os.path.join(base_dir, video_name, "pace_reversed.png")
+        # 确保目录存在
+        os.makedirs(os.path.dirname(image_save_path), exist_ok=True)
         plt.savefig(image_save_path)
+        print(f"[Pace] Saved to {image_save_path}")
         plt.close()
 
 

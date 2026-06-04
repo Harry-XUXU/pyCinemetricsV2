@@ -1,12 +1,32 @@
 import os
 import time
-from paddleocr import PaddleOCR
 import re
 import cv2
 import csv
+import sys
 from algorithms.wordCloud2Frame import WordCloud2Frame
-from ui.progressBar import pyqtbar
 from ui.progressBar import *
+
+# 延迟导入 paddleocr，避免 PyInstaller 打包时的 SSL 冲突
+PaddleOCR = None
+
+def get_model_path(relative_path):
+    """获取模型文件的绝对路径"""
+    if getattr(sys, 'frozen', False):
+        # 打包后的环境
+        executable_path = sys.executable
+        base_path = os.path.dirname(executable_path)
+        # 如果在 .app bundle 内，资源在 Resources 目录
+        if base_path.endswith('.app/Contents/MacOS'):
+            resources_path = os.path.join(os.path.dirname(base_path), 'Resources')
+            full_path = os.path.join(resources_path, relative_path)
+            if os.path.exists(full_path):
+                return full_path
+        # 尝试当前目录
+        return os.path.join(base_path, relative_path)
+    else:
+        # 开发环境
+        return os.path.join(os.getcwd(), relative_path)
 
 class InterTitle(QThread):
     #  通过类成员对象定义信号对象
@@ -20,12 +40,36 @@ class InterTitle(QThread):
 
     def __init__(self, v_path, save_path, intertitleValue,parent):
         super(InterTitle, self).__init__()
-        self.reader = PaddleOCR(
-            use_angle_cls=True,
-            show_log=False,
-            det_model_dir= r"./models/paddleocr/whl/det/ch/ch_PP-OCRv4_det_infer/",
-            cls_model_dir= r"./models/paddleocr/whl/cls/ch/ch_ppocr_mobile_v2.0_cls_infer/",
-            rec_model_dir= r"./models/paddleocr/whl/rec/ch/ch_PP-OCRv4_rec_infer/")
+        # 延迟导入 PaddleOCR，在实例化时才导入
+        global PaddleOCR
+        if PaddleOCR is None:
+            try:
+                from paddleocr import PaddleOCR as OCR
+                PaddleOCR = OCR
+            except ImportError as e:
+                print(f"Error importing PaddleOCR: {e}")
+                raise
+        
+        try:
+            # 使用绝对路径
+            det_model_dir = get_model_path('models/paddleocr/whl/det/ch/ch_PP-OCRv4_det_infer/')
+            cls_model_dir = get_model_path('models/paddleocr/whl/cls/ch/ch_ppocr_mobile_v2.0_cls_infer/')
+            rec_model_dir = get_model_path('models/paddleocr/whl/rec/ch/ch_PP-OCRv4_rec_infer/')
+            
+            print(f"[InterTitle] det_model_dir: {det_model_dir}, exists: {os.path.exists(det_model_dir)}")
+            print(f"[InterTitle] cls_model_dir: {cls_model_dir}, exists: {os.path.exists(cls_model_dir)}")
+            print(f"[InterTitle] rec_model_dir: {rec_model_dir}, exists: {os.path.exists(rec_model_dir)}")
+            
+            self.reader = PaddleOCR(
+                use_angle_cls=True,
+                show_log=False,
+                det_model_dir=det_model_dir,
+                cls_model_dir=cls_model_dir,
+                rec_model_dir=rec_model_dir)
+        except Exception as e:
+            print(f"Error initializing PaddleOCR: {e}")
+            raise
+        
         self.v_path = v_path
         self.save_path = save_path
         self.intertitleValue = intertitleValue

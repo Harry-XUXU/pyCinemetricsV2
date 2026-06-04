@@ -1,12 +1,13 @@
 import os
 import re
-from paddleocr import PaddleOCR
 import cv2
 import csv
 import numpy as np
 from algorithms.wordCloud2Frame import WordCloud2Frame
-from ui.progressBar import pyqtbar
 from ui.progressBar import *
+
+# 延迟导入 paddleocr，避免 PyInstaller 打包时的 SSL 冲突
+PaddleOCR = None
 
 class CrewProcessor(QThread):
     #  通过类成员对象定义信号对象
@@ -20,12 +21,27 @@ class CrewProcessor(QThread):
 
     def __init__(self, v_path, save_path, CrewValue, parent,st,ed):
         super(CrewProcessor, self).__init__()
-        self.reader = PaddleOCR(
-            use_angle_cls=True,
-            show_log=False,
-            det_model_dir= r"./models/paddleocr/whl/det/ch/ch_PP-OCRv4_det_infer/",
-            cls_model_dir= r"./models/paddleocr/whl/cls/ch/ch_ppocr_mobile_v2.0_cls_infer/",
-            rec_model_dir= r"./models/paddleocr/whl/rec/ch/ch_PP-OCRv4_rec_infer/")
+        # 延迟导入 PaddleOCR，在实例化时才导入
+        global PaddleOCR
+        if PaddleOCR is None:
+            try:
+                from paddleocr import PaddleOCR as OCR
+                PaddleOCR = OCR
+            except ImportError as e:
+                print(f"Error importing PaddleOCR: {e}")
+                raise
+        
+        try:
+            self.reader = PaddleOCR(
+                use_angle_cls=True,
+                show_log=False,
+                det_model_dir= r"./models/paddleocr/whl/det/ch/ch_PP-OCRv4_det_infer/",
+                cls_model_dir= r"./models/paddleocr/whl/cls/ch/ch_ppocr_mobile_v2.0_cls_infer/",
+                rec_model_dir= r"./models/paddleocr/whl/rec/ch/ch_PP-OCRv4_rec_infer/")
+        except Exception as e:
+            print(f"Error initializing PaddleOCR: {e}")
+            raise
+        
         self.v_path = v_path
         self.save_path = save_path
         self.CrewValue = 10

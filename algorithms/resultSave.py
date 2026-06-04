@@ -115,4 +115,5 @@ class Resultsave:
         fig.canvas.manager.set_window_title('Color Scatter')
 
         # 保存图像到指定路径
-        plt.savefig(os.path.join(self.image_save_path, 'colors.png'))
+        plt.savefig(os.path.join(self.image_save_path, 'scatter_3d.png'))
+        print(f"[ResultSave] 3D scatter plot saved to {os.path.join(self.image_save_path, 'scatter_3d.png')}")

@@ -46,8 +46,14 @@ class TransNetPlot(QDialog):
         df = pd.read_csv(os.path.join(self.image_save_path, "shotlength.csv"))
         self.shot_len = df[['start', 'end', 'length']].astype(int).values.tolist()
         # print(self.shot_len)
-        self.start = int(start)
-        self.end = int(end)
+        # 处理空字符串情况
+        try:
+            self.start = int(start) if start and start.strip() else 0
+            self.end = int(end) if end and end.strip() else len(self.shot_len)
+        except (ValueError, AttributeError) as e:
+            print(f"[ShotLength] Invalid start/end values: start={start}, end={end}, using defaults")
+            self.start = 0
+            self.end = len(self.shot_len)
         # 主布局
         self.main_layout = QVBoxLayout(self)
 
