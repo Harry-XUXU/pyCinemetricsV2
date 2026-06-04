@@ -34,6 +34,7 @@ python main.py
 ./build_macos.sh
 open dist/pyCinemetricsV2.app
 ```
+> 详细使用说明见 [USER_GUIDE.md](USER_GUIDE.md)
 
 ---
 
