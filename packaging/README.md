@@ -6,7 +6,7 @@
 
 ```bash
 # Run the launch script directly
-./run.sh
+./packaging/run.sh
 ```
 
 This automatically:
@@ -28,7 +28,7 @@ python3 main.py
 
 ```bash
 # Run the build script
-./build_macos.sh
+./packaging/build_macos.sh
 ```
 
 After build completes, `pyCinemetricsV2.app` will be in the `dist/` directory.
@@ -53,12 +53,13 @@ These variables must be set at runtime to prevent multi-threading conflicts:
 
 ```
 pyCinemetricsV2/
-├── run.sh                  # Dev launch script
-├── build_macos.sh          # Build script
-├── launcher.sh             # Internal app launcher
-├── Info.plist              # macOS app config (env vars)
-├── pyCinemetricsV2.spec    # PyInstaller config
-├── MACOS_BUILD_GUIDE.md    # Detailed build guide
+├── packaging/
+│   ├── run.sh              # Dev launch script
+│   ├── build_macos.sh      # Build script
+│   ├── launcher.sh         # Internal app launcher
+│   ├── Info.plist          # macOS app config (env vars)
+│   ├── pyCinemetricsV2.spec
+│   ├── BUILD_GUIDE.md      # Detailed build guide
 ├── venv/                   # Python virtual environment
 └── ...
 ```
@@ -93,7 +94,7 @@ xattr -cr dist/pyCinemetricsV2.app
 **A**: Ensure you build inside the virtual environment:
 ```bash
 source venv/bin/activate
-./build_macos.sh
+./packaging/build_macos.sh
 ```
 
 ### Q4: App bundle too large?
@@ -125,7 +126,7 @@ pip install pyinstaller
 
 ```bash
 # Use launch script
-./run.sh
+./packaging/run.sh
 
 # Or manually
 source venv/bin/activate
@@ -144,7 +145,7 @@ rm -rf build dist __pycache__
 pyinstaller pyCinemetricsV2.spec --clean
 
 # Or use automated script
-./build_macos.sh
+./packaging/build_macos.sh
 ```
 
 ### Step 4: Test the .app
@@ -267,7 +268,7 @@ hiddenimports=[
 
 - [PyInstaller Docs](https://pyinstaller.org/)
 - [macOS App Distribution Guide](https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution)
-- [Detailed Build Guide](MACOS_BUILD_GUIDE.md)
+- [Detailed Build Guide](BUILD_GUIDE.md)
 
 ---
 

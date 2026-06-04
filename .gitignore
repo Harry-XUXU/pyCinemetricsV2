@@ -27,3 +27,6 @@ pyCinemetrics20241218-StepByStep/
 debugpyc2.docx
 test_*.py
 test_*.sh
+
+# Analysis output
+img/*/

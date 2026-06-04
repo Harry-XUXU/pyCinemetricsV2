@@ -31,8 +31,8 @@ echo ""
 
 # 开始打包
 echo "开始打包..."
-echo "使用配置文件：main_mac.spec"
-pyinstaller main_mac.spec --clean
+echo "Using config: pyCinemetricsV2.spec"
+pyinstaller pyCinemetricsV2.spec --clean
 
 # 检查打包结果
 if [ -d "dist/pyCinemetricsV2.app" ]; then
@@ -66,7 +66,7 @@ else
     echo "======================================"
     echo "请检查错误日志并尝试以下操作："
     echo "1. 确保所有 Python 依赖已安装"
-    echo "2. 检查 main_mac.spec 配置是否正确"
+    echo "2. 检查 pyCinemetricsV2.spec 配置是否正确"
     echo "3. 查看详细错误信息在 build/ 目录中"
     echo ""
 fi

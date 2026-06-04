@@ -22,7 +22,7 @@ This fork adds the following to the original project:
 - PyInstaller `.spec` config + automated build scripts
 - DMG installer generation
 - macOS code signing + environment variable injection (`Info.plist`)
-- Detailed build guide: [MACOS_BUILD_GUIDE.md](MACOS_BUILD_GUIDE.md)
+- Detailed build guide: [packaging/BUILD_GUIDE.md](packaging/BUILD_GUIDE.md)
 
 ### Quick Start (macOS)
 ```bash
@@ -34,7 +34,8 @@ python main.py
 ./build_macos.sh
 open dist/pyCinemetricsV2.app
 ```
-> Full user guide: [USER_GUIDE.md](USER_GUIDE.md)
+> Full user guide: [USER_GUIDE.md](USER_GUIDE.md)  
+> Packaging guide: [packaging/README.md](packaging/README.md)
 
 ---
 

@@ -6,10 +6,10 @@
 
 ```bash
 # 1. Make the script executable
-chmod +x build_macos.sh
+chmod +x packaging/build_macos.sh
 
 # 2. Run the build script
-./build_macos.sh
+./packaging/build_macos.sh
 ```
 
 ### Method 2: Manual Build

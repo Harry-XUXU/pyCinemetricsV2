@@ -10,8 +10,8 @@ echo "PyCinemetricsV2 macOS 完整打包工具"
 echo "======================================"
 echo ""
 
-# 获取脚本所在目录
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# 获取项目根目录
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 cd "$SCRIPT_DIR"
 
 # 检查虚拟环境
@@ -51,7 +51,7 @@ echo "📦 开始打包..."
 echo ""
 
 # 直接运行打包（PyInstaller 会自动处理缓存）
-pyinstaller main_mac.spec
+pyinstaller packaging/pyCinemetricsV2.spec
 
 # 检查打包结果
 echo ""
